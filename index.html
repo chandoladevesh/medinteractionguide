@@ -87,9 +87,13 @@ function evidenceHtml(evidence) {
       return "<p>" + escapeHtml(text) + "</p>";
     }).join("");
 
+    const title = item.matchType === "class"
+      ? "FDA label evidence — class-level language"
+      : "FDA label evidence — direct mention";
+
     return (
       '<div class="evidence-block">' +
-        "<h4>FDA label evidence</h4>" +
+        "<h4>" + title + "</h4>" +
         paragraphs +
         '<a class="source-link" href="' + escapeHtml(item.url) +
         '" target="_blank" rel="noopener noreferrer">View FDA source query ↗</a>' +

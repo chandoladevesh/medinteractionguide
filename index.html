@@ -441,18 +441,140 @@
 
 <script>
 
-    function showComingSoon() {
+    async function showComingSoon() {
 
-        const resultBox = document.getElementById("resultBox");
+    const drug1 = document.getElementById("drug1").value.trim();
+    const drug2 = document.getElementById("drug2").value.trim();
+    const resultBox = document.getElementById("resultBox");
 
+    if (!drug1 || !drug2) {
         resultBox.style.display = "block";
+
+        resultBox.innerHTML = `
+            <h3>Please enter both items</h3>
+            <p>
+                Enter a medicine in both fields before checking.
+            </p>
+        `;
 
         resultBox.scrollIntoView({
             behavior: "smooth",
             block: "center"
         });
 
+        return;
     }
+
+    resultBox.style.display = "block";
+
+    resultBox.innerHTML = `
+        <h3>Checking FDA drug-label information...</h3>
+        <p>Please wait.</p>
+    `;
+
+    resultBox.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+    });
+
+    try {
+
+        const searchTerm = encodeURIComponent(drug1);
+
+        const apiUrl =
+            `https://api.fda.gov/drug/label.json?search=openfda.generic_name:${searchTerm}&limit=5`;
+
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+            throw new Error("FDA API request failed.");
+        }
+
+        const data = await response.json();
+
+        if (!data.results || data.results.length === 0) {
+
+            resultBox.innerHTML = `
+                <h3>No FDA label record found</h3>
+                <p>
+                    We could not find a matching FDA drug-label record
+                    for <strong>${escapeHtml(drug1)}</strong>.
+                </p>
+            `;
+
+            return;
+        }
+
+        let interactionText = "";
+
+        for (const record of data.results) {
+
+            if (
+                record.drug_interactions &&
+                Array.isArray(record.drug_interactions)
+            ) {
+                interactionText +=
+                    record.drug_interactions.join("<br><br>");
+            }
+        }
+
+        if (!interactionText) {
+
+            interactionText =
+                "The retrieved FDA label records did not contain a drug_interactions section.";
+        }
+
+        resultBox.innerHTML = `
+            <h3>FDA Label Information</h3>
+
+            <p>
+                <strong>First item:</strong>
+                ${escapeHtml(drug1)}
+            </p>
+
+            <p>
+                <strong>Second item:</strong>
+                ${escapeHtml(drug2)}
+            </p>
+
+            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #dbe4ea;">
+
+            <p>
+                <strong>Drug-interaction information found in FDA labeling:</strong>
+            </p>
+
+            <p style="margin-top: 10px;">
+                ${interactionText}
+            </p>
+
+            <p style="margin-top: 18px; font-size: 13px;">
+                Source: U.S. FDA drug-label information via openFDA.
+            </p>
+        `;
+
+    } catch (error) {
+
+        resultBox.innerHTML = `
+            <h3>Unable to retrieve FDA information</h3>
+
+            <p>
+                The FDA data service could not be reached at this time.
+                Please try again later.
+            </p>
+        `;
+    }
+}
+
+
+function escapeHtml(value) {
+
+    return value
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
 
 </script>
 

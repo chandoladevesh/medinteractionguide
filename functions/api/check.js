@@ -63,7 +63,13 @@ async function normalizeDrug(input) {
     encodeURIComponent(candidate.rxcui) +
     "/allrelated.json";
 
-  const related = await fetchJson(relatedUrl);
+  let related = { data: null };
+
+  try {
+    related = await fetchJson(relatedUrl);
+  } catch (error) {
+    console.warn("RxNorm related-concept lookup failed", error);
+  }
 
   return {
     kind: "drug",
@@ -104,10 +110,24 @@ async function getLabels(info) {
   );
 
   const responses = await Promise.all(
-    requests.map(async (item) => ({
-      ...item,
-      response: await fetchJson(item.url)
-    }))
+    requests.map(async (item) => {
+      try {
+        return {
+          ...item,
+          response: await fetchJson(item.url)
+        };
+      } catch (error) {
+        return {
+          ...item,
+          response: {
+            ok: false,
+            status: 0,
+            data: null,
+            error: String(error && error.message || error)
+          }
+        };
+      }
+    })
   );
 
   const results = [];

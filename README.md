@@ -28,3 +28,6 @@ The repository is connected to Cloudflare Pages. A push to the configured branch
 ## Disclaimer
 
 MedInteractionGuide is an informational tool. It does not provide medical advice, diagnosis, or treatment. Users should consult a qualified healthcare professional about individual medication decisions.
+## Deployment check
+
+After deployment, GET `/api/health` should return a JSON response with `ok: true` and the current build identifier. This provides a simple way to verify that the Pages Functions deployment is serving the expected revision.

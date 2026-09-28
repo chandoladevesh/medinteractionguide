@@ -20,3 +20,4 @@ bun.lockb
 .DS_Store
 .vscode/**
 .idea/**
+\n.assetsignore\n

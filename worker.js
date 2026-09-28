@@ -30,6 +30,14 @@ export default {
       });
     }
 
+    if (url.pathname === "/api/diagnostic") {
+      return (await import("./functions/api/diagnostic.js")).onRequestGet({
+        request,
+        env,
+        params: {}
+      });
+    }
+
     return env.ASSETS.fetch(request);
   }
 };

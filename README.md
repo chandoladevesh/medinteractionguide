@@ -4,7 +4,7 @@ MedInteractionGuide is a free U.S.-focused drug-drug and drug-food interaction c
 
 ## Current architecture
 
-The public page is a static index.html served by Cloudflare Pages. Interaction checks now use a same-origin Pages Function at /api/check.
+The public page is served by a Cloudflare Worker with Static Assets. The Worker serves index.html and handles the same-origin API routes /api/health and /api/check.
 
 The Pages Function normalizes medicine names with the U.S. National Library of Medicine RxNorm API, retrieves U.S. FDA drug-label records through openFDA, and returns evidence from the retrieved interaction sections. Keeping these API calls server-side avoids relying on browser-to-third-party API behavior and gives the project a clean place for future caching, rate limiting, logging, and API-key management.
 
@@ -23,7 +23,7 @@ This product uses publicly available data from the U.S. National Library of Medi
 
 ## Deployment
 
-The repository is connected to Cloudflare Pages. A push to the configured branch should create a new deployment when Pages Git integration is enabled.
+The repository is connected to the Cloudflare Worker deployment. The Worker uses wrangler.jsonc as its deployment configuration, and static assets are served from the repository root.
 
 ## Disclaimer
 

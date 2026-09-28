@@ -1,54 +1,16 @@
+import {
+  clean,
+  unique,
+  foodTerms,
+  rxNormCandidate,
+  collectRxNormTerms,
+  pharmacologicClassTerms,
+  interactionEvidence
+} from "../_lib/interaction.mjs";
+
 const FDA_BASE_URL = "https://api.fda.gov/drug/label.json";
 const RXNAV_BASE_URL = "https://rxnav.nlm.nih.gov/REST";
-
-const FOOD_ALIASES = {
-  grapefruit: ["grapefruit", "grapefruit juice"],
-  alcohol: ["alcohol", "ethanol", "alcoholic"],
-  caffeine: ["caffeine"],
-  dairy: ["milk", "dairy", "calcium"],
-  "vitamin k": ["vitamin k"],
-  tyramine: ["tyramine"],
-  potassium: ["potassium"],
-  sodium: ["sodium"]
-};
-
 const MAX_INPUT_LENGTH = 100;
-
-function clean(value) {
-  return String(value || "").replace(/\s+/g, " ").trim();
-}
-
-function unique(values) {
-  return [...new Set(values.filter(Boolean).map(clean))];
-}
-
-function containsTerm(text, term) {
-  const haystack = clean(text).toLowerCase();
-  const needle = clean(term).toLowerCase();
-
-  if (!needle) return false;
-  if (needle.includes(" ")) return haystack.includes(needle);
-
-  return new RegExp(
-    "(^|[^a-z0-9])" +
-      needle.replace(/[\\^$.*+?()[\]{}|]/g, "\\$&") +
-      "([^a-z0-9]|$)",
-    "i"
-  ).test(haystack);
-}
-
-function snippets(text, terms) {
-  return clean(text)
-    .split(/(?<=[.!?])\s+/)
-    .filter(Boolean)
-    .filter((part) => terms.some((term) => containsTerm(part, term)))
-    .slice(0, 3);
-}
-
-function foodTerms(input) {
-  const value = clean(input).toLowerCase();
-  return FOOD_ALIASES[value] || [value];
-}
 
 async function fetchJson(url, timeoutMs = 12000) {
   const controller = new AbortController();
@@ -84,11 +46,7 @@ async function normalizeDrug(input) {
 
   const response = await fetchJson(url.toString());
   const candidates = response.data?.approximateGroup?.candidate || [];
-
-  const candidate =
-    candidates.find(
-      (item) => String(item.source || "").toUpperCase() === "RXNORM"
-    ) || candidates[0];
+  const candidate = rxNormCandidate(candidates);
 
   if (!candidate?.rxcui) {
     return {
@@ -106,22 +64,18 @@ async function normalizeDrug(input) {
     "/allrelated.json";
 
   const related = await fetchJson(relatedUrl);
-  const terms = [];
-
-  (related.data?.allRelatedGroup?.conceptGroup || []).forEach((group) => {
-    if (!["IN", "PIN", "MIN"].includes(String(group.tty || ""))) return;
-
-    (group.conceptProperties || []).forEach((concept) => {
-      if (concept.name) terms.push(concept.name);
-    });
-  });
 
   return {
     kind: "drug",
     input: value,
     displayName: candidate.name || value,
     rxcui: String(candidate.rxcui),
-    terms: unique(terms.concat([candidate.name || value, value])).slice(0, 12)
+    matchScore: Number(candidate.score || 0),
+    matchRank: String(candidate.rank || ""),
+    terms: collectRxNormTerms(
+      related.data?.allRelatedGroup?.conceptGroup || [],
+      candidate.name || value
+    )
   };
 }
 
@@ -134,7 +88,7 @@ function fdaUrl(field, term) {
 }
 
 async function getLabels(info) {
-  const terms = unique((info.terms || []).slice(0, 6).concat([info.input]));
+  const terms = unique((info.terms || []).slice(0, 8).concat([info.input]));
   const results = [];
   const seen = new Set();
 
@@ -170,26 +124,24 @@ async function getLabels(info) {
   return results;
 }
 
-function interactionEvidence(labels, targetTerms) {
-  const evidence = [];
+function resultDetails(info) {
+  return {
+    input: info.input,
+    displayName: info.displayName,
+    rxcui: info.rxcui,
+    matchScore: info.matchScore,
+    matchRank: info.matchRank
+  };
+}
 
-  labels.forEach((item) => {
-    const sections = [
-      ...(item.record.drug_interactions || []),
-      ...(item.record.drug_interactions_table || [])
-    ].map(String);
+function collectTargetClassTerms(labels) {
+  return unique(
+    labels.flatMap((item) => pharmacologicClassTerms(item.record))
+  ).slice(0, 30);
+}
 
-    sections.forEach((section) => {
-      if (!targetTerms.some((term) => containsTerm(section, term))) return;
-
-      evidence.push({
-        snippets: snippets(section, targetTerms),
-        url: item.url
-      });
-    });
-  });
-
-  return evidence.slice(0, 8);
+function classTermsForDrug(labels) {
+  return collectTargetClassTerms(labels);
 }
 
 function json(data, status = 200) {
@@ -235,31 +187,54 @@ export async function onRequestGet({ request }) {
 
     if (!firstLabels.length) {
       return json({
-        first,
-        second,
+        first: resultDetails(first),
+        second: resultDetails(second),
         evidence: [],
         status: "no_fda_label"
       });
     }
 
     const secondIsDrug = second.kind === "drug";
-    const secondTerms = secondIsDrug
-      ? unique((second.terms || []).concat([secondInput]))
-      : foodTerms(secondInput);
-
-    let evidence = interactionEvidence(firstLabels, secondTerms);
+    let evidence = [];
 
     if (secondIsDrug) {
       const secondLabels = await getLabels(second);
-      const reverseTerms = unique((first.terms || []).concat([firstInput]));
+
+      const secondTerms = unique(
+        (second.terms || []).concat([secondInput])
+      );
+
+      const secondClassTerms = classTermsForDrug(secondLabels);
+      evidence = interactionEvidence(
+        firstLabels,
+        secondTerms,
+        secondClassTerms
+      );
+
+      const reverseTerms = unique(
+        (first.terms || []).concat([firstInput])
+      );
+
+      const firstClassTerms = classTermsForDrug(firstLabels);
       evidence = evidence
-        .concat(interactionEvidence(secondLabels, reverseTerms))
+        .concat(
+          interactionEvidence(
+            secondLabels,
+            reverseTerms,
+            firstClassTerms
+          )
+        )
         .slice(0, 8);
+    } else {
+      evidence = interactionEvidence(
+        firstLabels,
+        foodTerms(secondInput)
+      );
     }
 
     return json({
-      first,
-      second,
+      first: resultDetails(first),
+      second: resultDetails(second),
       evidence,
       status: evidence.length ? "label_mention" : "no_label_mention"
     });

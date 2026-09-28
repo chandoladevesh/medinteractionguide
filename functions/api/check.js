@@ -88,36 +88,51 @@ function fdaUrl(field, term) {
 }
 
 async function getLabels(info) {
-  const terms = unique((info.terms || []).slice(0, 8).concat([info.input]));
+  const terms = unique((info.terms || []).slice(0, 5).concat([info.input])).slice(0, 6);
+  const fields = [
+    "openfda.generic_name",
+    "openfda.substance_name",
+    "openfda.brand_name"
+  ];
+
+  const requests = terms.flatMap((term) =>
+    fields.map((field) => ({
+      term,
+      field,
+      url: fdaUrl(field, term)
+    }))
+  );
+
+  const responses = await Promise.all(
+    requests.map(async (item) => ({
+      ...item,
+      response: await fetchJson(item.url)
+    }))
+  );
+
   const results = [];
   const seen = new Set();
 
-  for (const term of terms) {
-    if (!term) continue;
+  for (const item of responses) {
+    const response = item.response;
 
-    for (const field of [
-      "openfda.generic_name",
-      "openfda.substance_name",
-      "openfda.brand_name"
-    ]) {
-      const url = fdaUrl(field, term);
-      const response = await fetchJson(url);
+    if (!response.ok || !response.data?.results) continue;
 
-      if (!response.ok || !response.data?.results) continue;
+    for (const record of response.data.results) {
+      const id =
+        record.id ||
+        record.openfda?.spl_set_id?.[0] ||
+        item.field + "-" + item.term + "-" + results.length;
 
-      for (const record of response.data.results) {
-        const id =
-          record.id ||
-          record.openfda?.spl_set_id?.[0] ||
-          field + "-" + term + "-" + results.length;
+      if (seen.has(id)) continue;
 
-        if (seen.has(id)) continue;
+      seen.add(id);
+      results.push({
+        record,
+        url: item.url
+      });
 
-        seen.add(id);
-        results.push({ record, url });
-
-        if (results.length >= 20) return results;
-      }
+      if (results.length >= 20) return results;
     }
   }
 

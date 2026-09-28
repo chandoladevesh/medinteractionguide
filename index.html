@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="MedInteractionGuide helps users check potential drug-drug and drug-food interactions using U.S. drug-label information."
+    >
+
+    <title>MedInteractionGuide | Drug & Food Interaction Checker</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f6f8fb;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 92%;
+            max-width: 1050px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+
+        header {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 18px 0;
+        }
+
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            font-size: 22px;
+            font-weight: 700;
+            color: #164e63;
+        }
+
+        .brand span {
+            color: #0f766e;
+        }
+
+        /* Hero */
+
+        .hero {
+            text-align: center;
+            padding: 75px 0 45px;
+        }
+
+        .hero h1 {
+            max-width: 800px;
+            margin: 0 auto 18px;
+            font-size: 44px;
+            line-height: 1.15;
+            color: #123b50;
+        }
+
+        .hero p {
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 18px;
+            color: #5b6472;
+        }
+
+        /* Checker */
+
+        .checker-card {
+            max-width: 780px;
+            margin: 10px auto 55px;
+            background: #ffffff;
+            padding: 34px;
+            border-radius: 16px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.06);
+        }
+
+        .checker-card h2 {
+            color: #123b50;
+            margin-bottom: 8px;
+        }
+
+        .checker-intro {
+            color: #6b7280;
+            margin-bottom: 25px;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #374151;
+        }
+
+        .field input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 9px;
+            font-size: 16px;
+            background: #ffffff;
+        }
+
+        .field input:focus {
+            outline: none;
+            border-color: #0f766e;
+            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+        }
+
+        .check-button {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 9px;
+            background: #0f766e;
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .check-button:hover {
+            opacity: 0.93;
+        }
+
+        .result-box {
+            display: none;
+            margin-top: 24px;
+            padding: 20px;
+            background: #f0fdfa;
+            border: 1px solid #ccfbf1;
+            border-radius: 10px;
+        }
+
+        .result-box h3 {
+            color: #115e59;
+            margin-bottom: 7px;
+        }
+
+        .result-box p {
+            color: #475569;
+        }
+
+        /* Features */
+
+        .section-title {
+            text-align: center;
+            color: #123b50;
+            margin-bottom: 28px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 13px;
+            box-shadow: 0 5px 22px rgba(0, 0, 0, 0.04);
+        }
+
+        .feature-card h3 {
+            color: #123b50;
+            margin-bottom: 9px;
+        }
+
+        .feature-card p {
+            color: #5b6472;
+        }
+
+        /* Trust section */
+
+        .trust-section {
+            background: #ffffff;
+            border-top: 1px solid #e5e7eb;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 35px 0;
+            margin-bottom: 0;
+        }
+
+        .trust-section p {
+            max-width: 850px;
+            margin: 0 auto;
+            text-align: center;
+            color: #4b5563;
+            font-size: 15px;
+        }
+
+        /* Disclaimer */
+
+        .disclaimer {
+            background: #fff8e6;
+            border-bottom: 1px solid #eadcae;
+            padding: 25px 0;
+        }
+
+        .disclaimer p {
+            font-size: 14px;
+            color: #624f18;
+        }
+
+        /* Footer */
+
+        footer {
+            background: #123b50;
+            color: #ffffff;
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        footer p {
+            font-size: 13px;
+            opacity: 0.9;
+            margin: 3px 0;
+        }
+
+        /* Mobile */
+
+        @media (max-width: 700px) {
+            .hero h1 {
+                font-size: 33px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .checker-card {
+                padding: 23px;
+            }
+
+            .header-inner {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="container header-inner">
+        <div class="brand">
+            Med<span>Interaction</span>Guide
+        </div>
+    </div>
+</header>
+
+<main>
+
+    <section class="hero">
+        <div class="container">
+            <h1>
+                Check Potential Drug & Food Interactions
+            </h1>
+
+            <p>
+                A simple tool designed to help you explore
+                medication interaction information from U.S. drug labeling.
+            </p>
+        </div>
+    </section>
+
+
+    <section class="container">
+
+        <div class="checker-card">
+
+            <h2>Interaction Checker</h2>
+
+            <p class="checker-intro">
+                Enter two medicines, or a medicine and a food or beverage.
+            </p>
+
+            <div class="field">
+                <label for="drug1">
+                    First medicine
+                </label>
+
+                <input
+                    id="drug1"
+                    type="text"
+                    placeholder="Example: warfarin"
+                    autocomplete="off"
+                >
+            </div>
+
+            <div class="field">
+                <label for="drug2">
+                    Second medicine, food, or beverage
+                </label>
+
+                <input
+                    id="drug2"
+                    type="text"
+                    placeholder="Example: ibuprofen or grapefruit"
+                    autocomplete="off"
+                >
+            </div>
+
+            <button
+                class="check-button"
+                type="button"
+                onclick="showComingSoon()"
+            >
+                Check Interaction
+            </button>
+
+            <div
+                class="result-box"
+                id="resultBox"
+            >
+                <h3>FDA data connection coming next</h3>
+
+                <p>
+                    The interaction engine is not connected yet.
+                    In the next step, we will connect this checker
+                    to FDA drug-label data.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="container">
+
+        <h2 class="section-title">
+            How MedInteractionGuide Works
+        </h2>
+
+        <div class="feature-grid">
+
+            <div class="feature-card">
+                <h3>Drug Information</h3>
+
+                <p>
+                    Search medication information using standardized
+                    drug names and U.S. drug-label data.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>Interaction Information</h3>
+
+                <p>
+                    Identify relevant interaction information described
+                    in available drug labeling.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <h3>Clear Explanations</h3>
+
+                <p>
+                    Results will be presented in straightforward language
+                    with links back to the underlying source information.
+                </p>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <section class="trust-section">
+
+        <div class="container">
+
+            <p>
+                <strong>Data source:</strong>
+                U.S. Food and Drug Administration drug-label information
+                made available through openFDA.
+                MedInteractionGuide is an independent project and is not
+                affiliated with or endorsed by the U.S. Food and Drug Administration.
+            </p>
+
+        </div>
+
+    </section>
+
+
+    <section class="disclaimer">
+
+        <div class="container">
+
+            <p>
+                <strong>Important:</strong>
+                MedInteractionGuide is an informational tool.
+                It does not provide medical advice, diagnosis, or treatment.
+                Do not start, stop, or change a medication based solely
+                on information provided by this website. Consult a qualified
+                healthcare professional regarding your individual situation.
+            </p>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <div class="container">
+
+        <p>
+            © 2026 MedInteractionGuide
+        </p>
+
+        <p>
+            Independent informational project.
+        </p>
+
+    </div>
+
+</footer>
+
+
+<script>
+
+    function showComingSoon() {
+
+        const resultBox = document.getElementById("resultBox");
+
+        resultBox.style.display = "block";
+
+        resultBox.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
+
+    }
+
+</script>
+
+</body>
+</html>

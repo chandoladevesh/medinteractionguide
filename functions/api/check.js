@@ -88,7 +88,7 @@ function fdaUrl(field, term) {
 }
 
 async function getLabels(info) {
-  const terms = unique((info.terms || []).slice(0, 5).concat([info.input])).slice(0, 6);
+  const terms = unique((info.terms || []).slice(0, 3).concat([info.input])).slice(0, 4);
   const fields = [
     "openfda.generic_name",
     "openfda.substance_name",
@@ -184,8 +184,11 @@ export async function onRequestGet({ request }) {
     return json({ error: "Each input must be 100 characters or fewer." }, 400);
   }
 
+  let stage = "input";
   try {
+    stage = "rxnorm-first";
     const first = await normalizeDrug(firstInput);
+    stage = "rxnorm-second";
     const second = await normalizeDrug(secondInput);
 
     if (first.kind !== "drug") {
@@ -198,6 +201,7 @@ export async function onRequestGet({ request }) {
       );
     }
 
+    stage = "fda-first";
     const firstLabels = await getLabels(first);
 
     if (!firstLabels.length) {
@@ -213,12 +217,14 @@ export async function onRequestGet({ request }) {
     let evidence = [];
 
     if (secondIsDrug) {
+      stage = "fda-second";
       const secondLabels = await getLabels(second);
 
       const secondTerms = unique(
         (second.terms || []).concat([secondInput])
       );
 
+      stage = "evidence-forward";
       const secondClassTerms = classTermsForDrug(secondLabels);
       evidence = interactionEvidence(
         firstLabels,
@@ -230,6 +236,7 @@ export async function onRequestGet({ request }) {
         (first.terms || []).concat([firstInput])
       );
 
+      stage = "evidence-reverse";
       const firstClassTerms = classTermsForDrug(firstLabels);
       evidence = evidence
         .concat(
@@ -241,6 +248,7 @@ export async function onRequestGet({ request }) {
         )
         .slice(0, 8);
     } else {
+      stage = "evidence-food";
       evidence = interactionEvidence(
         firstLabels,
         foodTerms(secondInput)
@@ -254,11 +262,16 @@ export async function onRequestGet({ request }) {
       status: evidence.length ? "label_mention" : "no_label_mention"
     });
   } catch (error) {
-    console.error("Interaction lookup failed", error);
+    console.error("Interaction lookup failed", { stage, error });
+    const debug = new URL(request.url).searchParams.get("debug") === "1";
     return json(
       {
         error: "The drug-information services could not complete the lookup.",
-        code: "LOOKUP_FAILED"
+        code: "LOOKUP_FAILED",
+        ...(debug ? {
+          stage,
+          detail: String(error && error.message || error)
+        } : {})
       },
       502
     );

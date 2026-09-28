@@ -1,1032 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <meta
-        name="description"
-        content="MedInteractionGuide helps users check potential drug-drug and drug-food interactions using U.S. drug-label information."
-    >
-
-    <title>MedInteractionGuide | Drug & Food Interaction Checker</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f6f8fb;
-            color: #1f2937;
-            line-height: 1.6;
-        }
-
-        .container {
-            width: 92%;
-            max-width: 1050px;
-            margin: 0 auto;
-        }
-
-        /* Header */
-
-        header {
-            background: #ffffff;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 18px 0;
-        }
-
-        .header-inner {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .brand {
-            font-size: 22px;
-            font-weight: 700;
-            color: #164e63;
-        }
-
-        .brand span {
-            color: #0f766e;
-        }
-
-        /* Hero */
-
-        .hero {
-            text-align: center;
-            padding: 75px 0 45px;
-        }
-
-        .hero h1 {
-            max-width: 800px;
-            margin: 0 auto 18px;
-            font-size: 44px;
-            line-height: 1.15;
-            color: #123b50;
-        }
-
-        .hero p {
-            max-width: 700px;
-            margin: 0 auto;
-            font-size: 18px;
-            color: #5b6472;
-        }
-
-        /* Checker */
-
-        .checker-card {
-            max-width: 780px;
-            margin: 10px auto 55px;
-            background: #ffffff;
-            padding: 34px;
-            border-radius: 16px;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.06);
-        }
-
-        .checker-card h2 {
-            color: #123b50;
-            margin-bottom: 8px;
-        }
-
-        .checker-intro {
-            color: #6b7280;
-            margin-bottom: 25px;
-        }
-
-        .field {
-            margin-bottom: 20px;
-        }
-
-        .field label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 700;
-            color: #374151;
-        }
-
-        .field input {
-            width: 100%;
-            padding: 15px;
-            border: 1px solid #cbd5e1;
-            border-radius: 9px;
-            font-size: 16px;
-            background: #ffffff;
-        }
-
-        .field input:focus {
-            outline: none;
-            border-color: #0f766e;
-            box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
-        }
-
-        .check-button {
-            width: 100%;
-            padding: 15px 20px;
-            border: none;
-            border-radius: 9px;
-            background: #0f766e;
-            color: #ffffff;
-            font-size: 17px;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .check-button:hover {
-            opacity: 0.93;
-        }
-
-        .result-box {
-            display: none;
-            margin-top: 24px;
-            padding: 20px;
-            background: #f0fdfa;
-            border: 1px solid #ccfbf1;
-            border-radius: 10px;
-        }
-
-        .result-box h3 {
-            color: #115e59;
-            margin-bottom: 7px;
-        }
-
-        .result-box p {
-            color: #475569;
-        }
-
-        /* Features */
-
-        .section-title {
-            text-align: center;
-            color: #123b50;
-            margin-bottom: 28px;
-        }
-
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 60px;
-        }
-
-        .feature-card {
-            background: #ffffff;
-            padding: 25px;
-            border-radius: 13px;
-            box-shadow: 0 5px 22px rgba(0, 0, 0, 0.04);
-        }
-
-        .feature-card h3 {
-            color: #123b50;
-            margin-bottom: 9px;
-        }
-
-        .feature-card p {
-            color: #5b6472;
-        }
-
-        /* Trust section */
-
-        .trust-section {
-            background: #ffffff;
-            border-top: 1px solid #e5e7eb;
-            border-bottom: 1px solid #e5e7eb;
-            padding: 35px 0;
-            margin-bottom: 0;
-        }
-
-        .trust-section p {
-            max-width: 850px;
-            margin: 0 auto;
-            text-align: center;
-            color: #4b5563;
-            font-size: 15px;
-        }
-
-        /* Disclaimer */
-
-        .disclaimer {
-            background: #fff8e6;
-            border-bottom: 1px solid #eadcae;
-            padding: 25px 0;
-        }
-
-        .disclaimer p {
-            font-size: 14px;
-            color: #624f18;
-        }
-
-        /* Footer */
-
-        footer {
-            background: #123b50;
-            color: #ffffff;
-            text-align: center;
-            padding: 30px 0;
-        }
-
-        footer p {
-            font-size: 13px;
-            opacity: 0.9;
-            margin: 3px 0;
-        }
-
-
-        .result-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-bottom: 10px;
-        }
-
-        .status-badge {
-            display: inline-block;
-            padding: 5px 9px;
-            border-radius: 999px;
-            font-size: 12px;
-            font-weight: 700;
-            background: #e2e8f0;
-            color: #334155;
-        }
-
-        .status-badge.notice {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .status-badge.found {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .status-badge.info {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .evidence-block {
-            margin-top: 18px;
-            padding: 16px;
-            background: #ffffff;
-            border: 1px solid #dbe4ea;
-            border-radius: 9px;
-        }
-
-        .evidence-block h4 {
-            margin-bottom: 10px;
-            color: #123b50;
-        }
-
-        .evidence-block p {
-            margin-bottom: 10px;
-        }
-
-        .evidence-block p:last-child {
-            margin-bottom: 0;
-        }
-
-        .result-note {
-            margin-top: 16px;
-            padding: 12px 14px;
-            background: #fffbeb;
-            border-left: 4px solid #d97706;
-            border-radius: 6px;
-            font-size: 13px;
-            color: #5b4a1f;
-        }
-
-        .source-link {
-            display: inline-block;
-            margin-top: 12px;
-            color: #0f766e;
-            font-size: 13px;
-            font-weight: 700;
-            text-decoration: none;
-        }
-
-        .source-link:hover {
-            text-decoration: underline;
-        }
-
-        .normalized-drugs {
-            margin-top: 12px;
-            font-size: 13px;
-            color: #475569;
-        }
-
-        /* Mobile */
-
-        @media (max-width: 700px) {
-            .hero h1 {
-                font-size: 33px;
-            }
-
-            .feature-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .checker-card {
-                padding: 23px;
-            }
-
-            .header-inner {
-                justify-content: center;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="MedInteractionGuide helps users explore potential drug-drug and drug-food interactions using U.S. FDA drug-label information.">
+<title>MedInteractionGuide | Drug & Food Interaction Checker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:#f6f8fb;color:#1f2937;line-height:1.6}
+.container{width:92%;max-width:1050px;margin:0 auto}
+header{background:#fff;border-bottom:1px solid #e5e7eb;padding:18px 0}
+.header-inner{display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:22px;font-weight:700;color:#164e63}.brand span{color:#0f766e}
+.hero{text-align:center;padding:68px 0 42px}.hero h1{max-width:800px;margin:0 auto 18px;font-size:44px;line-height:1.15;color:#123b50}.hero p{max-width:700px;margin:auto;font-size:18px;color:#5b6472}
+.checker-card{max-width:780px;margin:10px auto 55px;background:#fff;padding:34px;border-radius:16px;box-shadow:0 10px 35px rgba(0,0,0,.06)}
+.checker-card h2{color:#123b50;margin-bottom:8px}.checker-intro{color:#6b7280;margin-bottom:25px}
+.field{margin-bottom:20px}.field label{display:block;margin-bottom:8px;font-weight:700;color:#374151}
+.field input{width:100%;padding:15px;border:1px solid #cbd5e1;border-radius:9px;font-size:16px;background:#fff}
+.field input:focus{outline:none;border-color:#0f766e;box-shadow:0 0 0 3px rgba(15,118,110,.1)}
+.check-button{width:100%;padding:15px 20px;border:0;border-radius:9px;background:#0f766e;color:#fff;font-size:17px;font-weight:700;cursor:pointer}
+.check-button:disabled{opacity:.65;cursor:wait}.check-button:hover:not(:disabled){opacity:.93}
+.result-box{display:none;margin-top:24px;padding:20px;background:#f0fdfa;border:1px solid #ccfbf1;border-radius:10px}
+.result-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.result-box h3{color:#115e59;margin-bottom:7px}.result-box p{color:#475569}
+.status-badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700;background:#e2e8f0;color:#334155}
+.status-badge.notice{background:#fef3c7;color:#92400e}.status-badge.found{background:#dcfce7;color:#166534}.status-badge.info{background:#dbeafe;color:#1e40af}
+.evidence-block{margin-top:18px;padding:16px;background:#fff;border:1px solid #dbe4ea;border-radius:9px}
+.evidence-block h4{margin-bottom:10px;color:#123b50}.evidence-block p{margin-bottom:10px}.evidence-block p:last-child{margin-bottom:0}
+.result-note{margin-top:16px;padding:12px 14px;background:#fffbeb;border-left:4px solid #d97706;border-radius:6px;font-size:13px;color:#5b4a1f}
+.source-link{display:inline-block;margin-top:12px;color:#0f766e;font-size:13px;font-weight:700;text-decoration:none}.source-link:hover{text-decoration:underline}
+.normalized-drugs{margin-top:12px;font-size:13px;color:#475569}.loading{display:inline-block;width:14px;height:14px;border:2px solid #99f6e4;border-top-color:#0f766e;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:7px}@keyframes spin{to{transform:rotate(360deg)}}
+.section-title{text-align:center;color:#123b50;margin-bottom:28px}.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:60px}
+.feature-card{background:#fff;padding:25px;border-radius:13px;box-shadow:0 5px 22px rgba(0,0,0,.04)}.feature-card h3{color:#123b50;margin-bottom:9px}.feature-card p{color:#5b6472}
+.trust-section{background:#fff;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;padding:35px 0}.trust-section p{max-width:850px;margin:auto;text-align:center;color:#4b5563;font-size:15px}
+.disclaimer{background:#fff8e6;border-bottom:1px solid #eadcae;padding:25px 0}.disclaimer p{font-size:14px;color:#624f18}
+footer{background:#123b50;color:#fff;text-align:center;padding:30px 0}footer p{font-size:13px;opacity:.9;margin:3px 0}
+@media(max-width:700px){.hero h1{font-size:33px}.feature-grid{grid-template-columns:1fr}.checker-card{padding:23px}.header-inner{justify-content:center}}
+</style>
 </head>
-
 <body>
-
-<header>
-    <div class="container header-inner">
-        <div class="brand">
-            Med<span>Interaction</span>Guide
-        </div>
-    </div>
-</header>
-
+<header><div class="container header-inner"><div class="brand">Med<span>Interaction</span>Guide</div></div></header>
 <main>
-
-    <section class="hero">
-        <div class="container">
-            <h1>
-                Check Potential Drug & Food Interactions
-            </h1>
-
-            <p>
-                A simple tool designed to help you explore
-                medication interaction information from U.S. drug labeling.
-            </p>
-        </div>
-    </section>
-
-
-    <section class="container">
-
-        <div class="checker-card">
-
-            <h2>Interaction Checker</h2>
-
-            <p class="checker-intro">
-                Enter two medicines, or a medicine and a food or beverage.
-            </p>
-
-            <div class="field">
-                <label for="drug1">
-                    First medicine
-                </label>
-
-                <input
-                    id="drug1"
-                    type="text"
-                    placeholder="Example: warfarin"
-                    autocomplete="off"
-                >
-            </div>
-
-            <div class="field">
-                <label for="drug2">
-                    Second medicine, food, or beverage
-                </label>
-
-                <input
-                    id="drug2"
-                    type="text"
-                    placeholder="Example: ibuprofen or grapefruit"
-                    autocomplete="off"
-                >
-            </div>
-
-            <button
-                class="check-button"
-                type="button"
-                onclick="checkInteraction()"
-            >
-                Check Interaction
-            </button>
-
-            <div
-                class="result-box"
-                id="resultBox"
-            >
-                <h3>FDA data connection coming next</h3>
-
-                <p>
-                    The interaction engine is not connected yet.
-                    In the next step, we will connect this checker
-                    to FDA drug-label data.
-                </p>
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <section class="container">
-
-        <h2 class="section-title">
-            How MedInteractionGuide Works
-        </h2>
-
-        <div class="feature-grid">
-
-            <div class="feature-card">
-                <h3>Drug Information</h3>
-
-                <p>
-                    Search medication information using standardized
-                    drug names and U.S. drug-label data.
-                </p>
-            </div>
-
-            <div class="feature-card">
-                <h3>Interaction Information</h3>
-
-                <p>
-                    Identify relevant interaction information described
-                    in available drug labeling.
-                </p>
-            </div>
-
-            <div class="feature-card">
-                <h3>Clear Explanations</h3>
-
-                <p>
-                    Results will be presented in straightforward language
-                    with links back to the underlying source information.
-                </p>
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <section class="trust-section">
-
-        <div class="container">
-
-            <p>
-                <strong>Data source:</strong>
-                U.S. Food and Drug Administration drug-label information
-                made available through openFDA.
-                MedInteractionGuide is an independent project and is not
-                affiliated with or endorsed by the U.S. Food and Drug Administration.
-            </p>
-
-        </div>
-
-    </section>
-
-
-    <section class="disclaimer">
-
-        <div class="container">
-
-            <p>
-                <strong>Important:</strong>
-                MedInteractionGuide is an informational tool.
-                It does not provide medical advice, diagnosis, or treatment.
-                Do not start, stop, or change a medication based solely
-                on information provided by this website. Consult a qualified
-                healthcare professional regarding your individual situation.
-            </p>
-
-        </div>
-
-    </section>
-
+<section class="hero"><div class="container"><h1>Check Potential Drug &amp; Food Interactions</h1><p>Explore interaction information reported in U.S. FDA drug labeling.</p></div></section>
+<section class="container">
+<div class="checker-card">
+<h2>Interaction Checker</h2>
+<p class="checker-intro">Enter two medicines, or a medicine and a food or beverage.</p>
+<div class="field"><label for="drug1">First medicine</label><input id="drug1" type="text" placeholder="Example: warfarin" autocomplete="off"></div>
+<div class="field"><label for="drug2">Second medicine, food, or beverage</label><input id="drug2" type="text" placeholder="Example: ibuprofen or grapefruit" autocomplete="off"></div>
+<button class="check-button" id="checkButton" type="button" onclick="checkInteraction()">Check Interaction</button>
+<div class="result-box" id="resultBox" aria-live="polite"></div>
+</div>
+</section>
+<section class="container">
+<h2 class="section-title">How MedInteractionGuide Works</h2>
+<div class="feature-grid">
+<div class="feature-card"><h3>Drug Information</h3><p>Normalize medicine names with the U.S. National Library of Medicine RxNorm service before searching labels.</p></div>
+<div class="feature-card"><h3>Interaction Evidence</h3><p>Review relevant text from FDA drug-label interaction sections and distinguish a label mention from an absence of evidence.</p></div>
+<div class="feature-card"><h3>Source Transparency</h3><p>See the FDA openFDA query used to retrieve the underlying label information.</p></div>
+</div>
+</section>
+<section class="trust-section"><div class="container"><p><strong>Data sources:</strong> U.S. Food and Drug Administration drug-label information through openFDA, with RxNorm used for medicine-name normalization. MedInteractionGuide is an independent project and is not affiliated with or endorsed by the FDA or NLM.</p></div></section>
+<section class="disclaimer"><div class="container"><p><strong>Important:</strong> MedInteractionGuide is an informational tool. It does not provide medical advice, diagnosis, or treatment. A label mention is not a personalized risk assessment, and a missing mention does not establish that an interaction does not exist. Do not start, stop, or change a medication based solely on this website. Consult a qualified healthcare professional about your individual situation.</p></div></section>
 </main>
-
-
-<footer>
-
-    <div class="container">
-
-        <p>
-            © 2026 MedInteractionGuide
-        </p>
-
-        <p>
-            Independent informational project.
-        </p>
-
-    </div>
-
-</footer>
-
-
-
+<footer><div class="container"><p>© 2026 MedInteractionGuide</p><p>Independent informational project.</p></div></footer>
 <script>
-    const FDA_BASE_URL = "https://api.fda.gov/drug/label.json";
-    const RXNAV_BASE_URL = "https://rxnav.nlm.nih.gov/REST";
-
-    const FOOD_ALIASES = {
-        grapefruit: ["grapefruit", "grapefruit juice"],
-        alcohol: ["alcohol", "ethanol", "alcoholic"],
-        caffeine: ["caffeine"],
-        dairy: ["milk", "dairy", "calcium"],
-        "vitamin k": ["vitamin k"],
-        tyramine: ["tyramine"],
-        potassium: ["potassium"],
-        sodium: ["sodium"]
-    };
-
-    async function fetchJson(url, timeoutMs = 12000) {
-        const controller = new AbortController();
-        const timer = setTimeout(function () { controller.abort(); }, timeoutMs);
-
-        try {
-            const response = await fetch(url, {
-                method: "GET",
-                headers: { "Accept": "application/json" },
-                signal: controller.signal
-            });
-
-            const text = await response.text();
-            let data = null;
-
-            try {
-                data = text ? JSON.parse(text) : null;
-            } catch (e) {
-                data = null;
-            }
-
-            return { ok: response.ok, status: response.status, data: data };
-        } finally {
-            clearTimeout(timer);
-        }
-    }
-
-    function escapeHtml(value) {
-        return String(value || "")
-            .replaceAll("&", "&amp;")
-            .replaceAll("<", "&lt;")
-            .replaceAll(">", "&gt;")
-            .replaceAll('"', "&quot;")
-            .replaceAll("'", "&#039;");
-    }
-
-    function clean(value) {
-        return String(value || "").replace(/\s+/g, " ").trim();
-    }
-
-    function unique(values) {
-        return Array.from(new Set(
-            values.filter(Boolean).map(function (v) { return clean(v); })
-        ));
-    }
-
-    function escapeRegex(value) {
-        return String(value).replace(/[\\^$.*+?()[\]{}|]/g, "\\<script>
-
-    async function showComingSoon() {
-
-    const drug1 = document.getElementById("drug1").value.trim();
-    const drug2 = document.getElementById("drug2").value.trim();
-    const resultBox = document.getElementById("resultBox");
-
-    if (!drug1 || !drug2) {
-        resultBox.style.display = "block";
-
-        resultBox.innerHTML = `
-            <h3>Please enter both items</h3>
-            <p>
-                Enter a medicine in both fields before checking.
-            </p>
-        `;
-
-        resultBox.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-        });
-
-        return;
-    }
-
-    resultBox.style.display = "block";
-
-    resultBox.innerHTML = `
-        <h3>Checking FDA drug-label information...</h3>
-        <p>Please wait.</p>
-    `;
-
-    resultBox.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-    });
-
-    try {
-
-        const searchTerm = encodeURIComponent(drug1);
-
-        const apiUrl =
-            `https://api.fda.gov/drug/label.json?search=openfda.generic_name:${searchTerm}&limit=5`;
-
-        const response = await fetch(apiUrl);
-
-        if (!response.ok) {
-            throw new Error("FDA API request failed.");
-        }
-
-        const data = await response.json();
-
-        if (!data.results || data.results.length === 0) {
-
-            resultBox.innerHTML = `
-                <h3>No FDA label record found</h3>
-                <p>
-                    We could not find a matching FDA drug-label record
-                    for <strong>${escapeHtml(drug1)}</strong>.
-                </p>
-            `;
-
-            return;
-        }
-
-        let interactionText = "";
-
-        for (const record of data.results) {
-
-            if (
-                record.drug_interactions &&
-                Array.isArray(record.drug_interactions)
-            ) {
-                interactionText +=
-                    record.drug_interactions.join("<br><br>");
-            }
-        }
-
-        if (!interactionText) {
-
-            interactionText =
-                "The retrieved FDA label records did not contain a drug_interactions section.";
-        }
-
-        resultBox.innerHTML = `
-            <h3>FDA Label Information</h3>
-
-            <p>
-                <strong>First item:</strong>
-                ${escapeHtml(drug1)}
-            </p>
-
-            <p>
-                <strong>Second item:</strong>
-                ${escapeHtml(drug2)}
-            </p>
-
-            <hr style="margin: 15px 0; border: 0; border-top: 1px solid #dbe4ea;">
-
-            <p>
-                <strong>Drug-interaction information found in FDA labeling:</strong>
-            </p>
-
-            <p style="margin-top: 10px;">
-                ${interactionText}
-            </p>
-
-            <p style="margin-top: 18px; font-size: 13px;">
-                Source: U.S. FDA drug-label information via openFDA.
-            </p>
-        `;
-
-    } catch (error) {
-
-        resultBox.innerHTML = `
-            <h3>Unable to retrieve FDA information</h3>
-
-            <p>
-                The FDA data service could not be reached at this time.
-                Please try again later.
-            </p>
-        `;
-    }
+const FDA_BASE_URL="https://api.fda.gov/drug/label.json";
+const RXNAV_BASE_URL="https://rxnav.nlm.nih.gov/REST";
+const FOOD_ALIASES={
+ grapefruit:["grapefruit","grapefruit juice"], alcohol:["alcohol","ethanol","alcoholic"],
+ caffeine:["caffeine"], dairy:["milk","dairy","calcium"], "vitamin k":["vitamin k"],
+ tyramine:["tyramine"], potassium:["potassium"], sodium:["sodium"]
+};
+async function fetchJson(url,timeoutMs=12000){
+ const controller=new AbortController(); const timer=setTimeout(()=>controller.abort(),timeoutMs);
+ try{const response=await fetch(url,{headers:{Accept:"application/json"},signal:controller.signal}); const text=await response.text(); let data=null;
+ try{data=text?JSON.parse(text):null}catch(e){} return {ok:response.ok,status:response.status,data};
+ }finally{clearTimeout(timer)}
 }
-
-
-function escapeHtml(value) {
-
-    return value
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+function clean(v){return String(v||"").replace(/\s+/g," ").trim()}
+function unique(values){return [...new Set(values.filter(Boolean).map(clean))]}
+function escapeHtml(v){return String(v||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+function escapeRegex(v){return String(v).replace(/[\\^$.*+?()[\]{}|]/g,"\\$&")}
+function containsTerm(text,term){
+ const hay=clean(text).toLowerCase(), needle=clean(term).toLowerCase(); if(!needle)return false;
+ if(needle.includes(" "))return hay.includes(needle);
+ return new RegExp("(^|[^a-z0-9])"+escapeRegex(needle)+"([^a-z0-9]|$)","i").test(hay);
 }
-
-</script>");
-    }
-
-    function containsTerm(text, term) {
-        const haystack = clean(text).toLowerCase();
-        const needle = clean(term).toLowerCase();
-
-        if (!needle) return false;
-
-        if (needle.indexOf(" ") !== -1) {
-            return haystack.indexOf(needle) !== -1;
-        }
-
-        return new RegExp("(^|[^a-z0-9])" + escapeRegex(needle) + "([^a-z0-9]|$)", "i").test(haystack);
-    }
-
-    function snippets(text, terms) {
-        const parts = clean(text)
-            .split(/(?<=[.!?])\s+/)
-            .filter(Boolean);
-
-        return parts.filter(function (part) {
-            return terms.some(function (term) {
-                return containsTerm(part, term);
-            });
-        }).slice(0, 3);
-    }
-
-    function foodTerms(input) {
-        const value = clean(input).toLowerCase();
-
-        if (FOOD_ALIASES[value]) {
-            return FOOD_ALIASES[value];
-        }
-
-        return [value];
-    }
-
-    async function normalizeDrug(input) {
-        const value = clean(input);
-
-        const url =
-            RXNAV_BASE_URL +
-            "/approximateTerm.json?term=" +
-            encodeURIComponent(value) +
-            "&maxEntries=8&option=1";
-
-        const response = await fetchJson(url);
-
-        const candidates =
-            response.data &&
-            response.data.approximateGroup &&
-            response.data.approximateGroup.candidate
-                ? response.data.approximateGroup.candidate
-                : [];
-
-        const candidate =
-            candidates.find(function (item) {
-                return String(item.source || "").toUpperCase() === "RXNORM";
-            }) || candidates[0];
-
-        if (!candidate || !candidate.rxcui) {
-            return {
-                kind: "unknown",
-                input: value,
-                displayName: null,
-                terms: foodTerms(value)
-            };
-        }
-
-        const relatedUrl =
-            RXNAV_BASE_URL +
-            "/rxcui/" +
-            encodeURIComponent(candidate.rxcui) +
-            "/allrelated.json";
-
-        const related = await fetchJson(relatedUrl);
-        const terms = [];
-
-        const groups =
-            related.data &&
-            related.data.allRelatedGroup &&
-            related.data.allRelatedGroup.conceptGroup
-                ? related.data.allRelatedGroup.conceptGroup
-                : [];
-
-        groups.forEach(function (group) {
-            if (["IN", "PIN", "MIN"].indexOf(String(group.tty || "")) === -1) {
-                return;
-            }
-
-            (group.conceptProperties || []).forEach(function (concept) {
-                if (concept.name) terms.push(concept.name);
-            });
-        });
-
-        return {
-            kind: "drug",
-            input: value,
-            displayName: candidate.name || value,
-            rxcui: String(candidate.rxcui),
-            terms: unique(terms.concat([candidate.name || value, value]))
-        };
-    }
-
-    function fdaUrl(field, term) {
-        const query = field + ':"' + String(term).replaceAll('"', "") + '"';
-        return FDA_BASE_URL + "?search=" + encodeURIComponent(query) + "&limit=20";
-    }
-
-    async function getLabels(info) {
-        const terms = unique((info.terms || []).slice(0, 5).concat([info.input]));
-        const results = [];
-        const seen = new Set();
-
-        for (const term of terms) {
-            if (!term) continue;
-
-            for (const field of [
-                "openfda.generic_name",
-                "openfda.substance_name",
-                "openfda.brand_name"
-            ]) {
-                const url = fdaUrl(field, term);
-                const response = await fetchJson(url);
-
-                if (!response.ok || !response.data || !response.data.results) {
-                    continue;
-                }
-
-                for (const record of response.data.results) {
-                    const id =
-                        record.id ||
-                        (record.openfda && record.openfda.spl_set_id && record.openfda.spl_set_id[0]) ||
-                        field + "-" + term + "-" + results.length;
-
-                    if (seen.has(id)) continue;
-
-                    seen.add(id);
-                    results.push({
-                        record: record,
-                        url: url
-                    });
-
-                    if (results.length >= 20) {
-                        return results;
-                    }
-                }
-            }
-        }
-
-        return results;
-    }
-
-    function interactionEvidence(labels, targetTerms) {
-        const evidence = [];
-
-        labels.forEach(function (item) {
-            const record = item.record;
-            const sections = [];
-
-            (record.drug_interactions || []).forEach(function (x) { sections.push(String(x || "")); });
-            (record.drug_interactions_table || []).forEach(function (x) { sections.push(String(x || "")); });
-
-            sections.forEach(function (section) {
-                if (targetTerms.some(function (term) { return containsTerm(section, term); })) {
-                    evidence.push({
-                        snippets: snippets(section, targetTerms),
-                        url: item.url
-                    });
-                }
-            });
-        });
-
-        return evidence.slice(0, 5);
-    }
-
-    function evidenceHtml(title, evidence) {
-        if (!evidence.length) return "";
-
-        return evidence.map(function (item) {
-            const paragraphs = (item.snippets.length ? item.snippets : ["Relevant text was found in the FDA interaction section."])
-                .map(function (text) {
-                    return "<p>" + escapeHtml(text) + "</p>";
-                }).join("");
-
-            return (
-                '<div class="evidence-block">' +
-                    "<h4>" + escapeHtml(title) + "</h4>" +
-                    paragraphs +
-                    '<a class="source-link" href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer">View FDA source query ↗</a>' +
-                "</div>"
-            );
-        }).join("");
-    }
-
-    async function checkInteraction() {
-        const drug1 = clean(document.getElementById("drug1").value);
-        const drug2 = clean(document.getElementById("drug2").value);
-        const resultBox = document.getElementById("resultBox");
-
-        if (!drug1 || !drug2) {
-            resultBox.style.display = "block";
-            resultBox.innerHTML =
-                '<div class="result-head">' +
-                    "<h3>Please enter both items</h3>" +
-                    '<span class="status-badge notice">Missing input</span>' +
-                "</div>" +
-                "<p>Enter a medicine in both fields before checking.</p>";
-            return;
-        }
-
-        resultBox.style.display = "block";
-        resultBox.innerHTML =
-            '<div class="result-head">' +
-                "<h3>Checking drug information...</h3>" +
-                '<span class="status-badge info">Searching</span>' +
-            "</div>" +
-            "<p>Matching names with NLM RxNorm and reviewing FDA drug-label interaction sections.</p>";
-
-        try {
-            const first = await normalizeDrug(drug1);
-            const second = await normalizeDrug(drug2);
-
-            if (first.kind !== "drug") {
-                resultBox.innerHTML =
-                    '<div class="result-head">' +
-                        "<h3>First item was not recognized as a medicine</h3>" +
-                        '<span class="status-badge notice">Check input</span>' +
-                    "</div>" +
-                    "<p>Try a U.S. generic name or common U.S. brand name.</p>";
-                return;
-            }
-
-            const firstLabels = await getLabels(first);
-
-            if (!firstLabels.length) {
-                resultBox.innerHTML =
-                    '<div class="result-head">' +
-                        "<h3>No matching FDA label record was found</h3>" +
-                        '<span class="status-badge notice">No match</span>' +
-                    "</div>" +
-                    "<p>We could not retrieve an FDA drug-label record for <strong>" +
-                    escapeHtml(drug1) +
-                    "</strong>.</p>";
-                return;
-            }
-
-            const secondIsDrug = second.kind === "drug";
-            const secondTerms = secondIsDrug ? unique(second.terms.concat([drug2])) : foodTerms(drug2);
-
-            let evidence = interactionEvidence(firstLabels, secondTerms);
-
-            if (secondIsDrug) {
-                const secondLabels = await getLabels(second);
-                const reverseTerms = unique(first.terms.concat([drug1]));
-                evidence = evidence.concat(interactionEvidence(secondLabels, reverseTerms)).slice(0, 8);
-            }
-
-            const normalizedText =
-                "<div class="normalized-drugs">" +
-                "<strong>" + escapeHtml(drug1) + "</strong> → " +
-                escapeHtml(first.displayName || drug1) +
-                " &nbsp; | &nbsp; " +
-                "<strong>" + escapeHtml(drug2) + "</strong> → " +
-                escapeHtml(secondIsDrug ? (second.displayName || drug2) : drug2) +
-                "</div>";
-
-            if (evidence.length) {
-                resultBox.innerHTML =
-                    '<div class="result-head">' +
-                        "<h3>Interaction information found in FDA labeling</h3>" +
-                        '<span class="status-badge found">Label mention found</span>' +
-                    "</div>" +
-                    "<p>The retrieved FDA interaction sections directly mention the other medicine or food term.</p>" +
-                    normalizedText +
-                    evidenceHtml("FDA label evidence", evidence) +
-                    '<div class="result-note"><strong>Important:</strong> This reports information found in FDA labeling. It does not determine whether the combination is safe or appropriate for a particular person.</div>';
-            } else {
-                resultBox.innerHTML =
-                    '<div class="result-head">' +
-                        "<h3>No direct mention found in retrieved FDA interaction sections</h3>" +
-                        '<span class="status-badge info">No label mention</span>' +
-                    "</div>" +
-                    "<p>We did not find a direct mention of <strong>" +
-                    escapeHtml(drug2) +
-                    "</strong> in the retrieved interaction sections.</p>" +
-                    normalizedText +
-                    '<div class="result-note"><strong>Important:</strong> A missing mention is not a finding that no interaction exists. FDA labeling varies by product and may not contain every possible interaction.</div>';
-            }
-
-        } catch (error) {
-            console.error(error);
-
-            resultBox.innerHTML =
-                '<div class="result-head">' +
-                    "<h3>We could not complete the check</h3>" +
-                    '<span class="status-badge notice">Temporary error</span>' +
-                "</div>" +
-                "<p>The drug-information service could not be reached or returned an unexpected response.</p>" +
-                '<div class="result-note">Do not use a failed lookup as evidence that two medicines are safe to combine.</div>';
-        }
-    }
+function snippets(text,terms){
+ return clean(text).split(/(?<=[.!?])\s+/).filter(Boolean).filter(p=>terms.some(t=>containsTerm(p,t))).slice(0,3);
+}
+function foodTerms(input){const value=clean(input).toLowerCase();return FOOD_ALIASES[value]||[value]}
+async function normalizeDrug(input){
+ const value=clean(input);
+ const url=RXNAV_BASE_URL+"/approximateTerm.json?term="+encodeURIComponent(value)+"&maxEntries=8&option=1";
+ const response=await fetchJson(url);
+ const candidates=response.data?.approximateGroup?.candidate||[];
+ const candidate=candidates.find(x=>String(x.source||"").toUpperCase()==="RXNORM")||candidates[0];
+ if(!candidate?.rxcui)return {kind:"unknown",input:value,displayName:null,terms:foodTerms(value)};
+ const related=await fetchJson(RXNAV_BASE_URL+"/rxcui/"+encodeURIComponent(candidate.rxcui)+"/allrelated.json");
+ const terms=[];
+ (related.data?.allRelatedGroup?.conceptGroup||[]).forEach(group=>{
+   if(!["IN","PIN","MIN"].includes(String(group.tty||"")))return;
+   (group.conceptProperties||[]).forEach(c=>{if(c.name)terms.push(c.name)})
+ });
+ return {kind:"drug",input:value,displayName:candidate.name||value,rxcui:String(candidate.rxcui),terms:unique(terms.concat([candidate.name||value,value]))};
+}
+function fdaUrl(field,term){
+ const query=field+':"'+String(term).replaceAll('"',"")+'"';
+ return FDA_BASE_URL+"?search="+encodeURIComponent(query)+"&limit=20";
+}
+async function getLabels(info){
+ const terms=unique((info.terms||[]).slice(0,6).concat([info.input])), results=[], seen=new Set();
+ for(const term of terms){
+   if(!term)continue;
+   for(const field of ["openfda.generic_name","openfda.substance_name","openfda.brand_name"]){
+     const url=fdaUrl(field,term), response=await fetchJson(url);
+     if(!response.ok||!response.data?.results)continue;
+     for(const record of response.data.results){
+       const id=record.id||(record.openfda?.spl_set_id?.[0])||(field+"-"+term+"-"+results.length);
+       if(seen.has(id))continue;
+       seen.add(id); results.push({record,url});
+       if(results.length>=20)return results;
+     }
+   }
+ }
+ return results;
+}
+function interactionEvidence(labels,targetTerms){
+ const evidence=[];
+ labels.forEach(item=>{
+   const record=item.record;
+   const sections=[...(record.drug_interactions||[]),...(record.drug_interactions_table||[])].map(String);
+   sections.forEach(section=>{
+     if(targetTerms.some(term=>containsTerm(section,term)))evidence.push({snippets:snippets(section,targetTerms),url:item.url});
+   });
+ });
+ return evidence.slice(0,6);
+}
+function evidenceHtml(evidence){
+ return evidence.map(item=>{
+   const paragraphs=(item.snippets.length?item.snippets:["Relevant text was found in the FDA interaction section."]).map(t=>"<p>"+escapeHtml(t)+"</p>").join("");
+   return '<div class="evidence-block"><h4>FDA label evidence</h4>'+paragraphs+'<a class="source-link" href="'+escapeHtml(item.url)+'" target="_blank" rel="noopener noreferrer">View FDA source query ↗</a></div>';
+ }).join("");
+}
+function setResult(html){const box=document.getElementById("resultBox");box.style.display="block";box.innerHTML=html;box.scrollIntoView({behavior:"smooth",block:"center"})}
+async function checkInteraction(){
+ const drug1=clean(document.getElementById("drug1").value), drug2=clean(document.getElementById("drug2").value);
+ const button=document.getElementById("checkButton");
+ if(!drug1||!drug2){setResult('<div class="result-head"><h3>Please enter both items</h3><span class="status-badge notice">Missing input</span></div><p>Enter a medicine in both fields before checking.</p>');return}
+ button.disabled=true;
+ setResult('<div class="result-head"><h3><span class="loading"></span>Checking drug information...</h3><span class="status-badge info">Searching</span></div><p>Matching names with RxNorm and reviewing FDA drug-label interaction sections.</p>');
+ try{
+   const first=await normalizeDrug(drug1), second=await normalizeDrug(drug2);
+   if(first.kind!=="drug"){setResult('<div class="result-head"><h3>First item was not recognized as a medicine</h3><span class="status-badge notice">Check input</span></div><p>Try a U.S. generic name or common U.S. brand name.</p>');return}
+   const firstLabels=await getLabels(first);
+   if(!firstLabels.length){setResult('<div class="result-head"><h3>No matching FDA label record was found</h3><span class="status-badge notice">No match</span></div><p>We could not retrieve an FDA drug-label record for <strong>'+escapeHtml(drug1)+'</strong>.</p>');return}
+   const secondIsDrug=second.kind==="drug";
+   const secondTerms=secondIsDrug?unique(second.terms.concat([drug2])):foodTerms(drug2);
+   let evidence=interactionEvidence(firstLabels,secondTerms);
+   if(secondIsDrug){
+     const secondLabels=await getLabels(second);
+     evidence=evidence.concat(interactionEvidence(secondLabels,unique(first.terms.concat([drug1])))).slice(0,8);
+   }
+   const normalized='<div class="normalized-drugs"><strong>'+escapeHtml(drug1)+'</strong> → '+escapeHtml(first.displayName||drug1)+' &nbsp; | &nbsp; <strong>'+escapeHtml(drug2)+'</strong> → '+escapeHtml(secondIsDrug?(second.displayName||drug2):drug2)+'</div>';
+   if(evidence.length){
+     setResult('<div class="result-head"><h3>Interaction information found in FDA labeling</h3><span class="status-badge found">Label mention found</span></div><p>The retrieved FDA interaction sections directly mention the other medicine or food term.</p>'+normalized+evidenceHtml(evidence)+'<div class="result-note"><strong>Important:</strong> This reports information found in FDA labeling. It does not determine whether the combination is safe or appropriate for a particular person.</div>');
+   }else{
+     setResult('<div class="result-head"><h3>No direct mention found in retrieved FDA interaction sections</h3><span class="status-badge info">No label mention</span></div><p>We did not find a direct mention of <strong>'+escapeHtml(drug2)+'</strong> in the retrieved interaction sections.</p>'+normalized+'<div class="result-note"><strong>Important:</strong> A missing mention is not a finding that no interaction exists. FDA labeling varies by product and may not contain every possible interaction.</div>');
+   }
+ }catch(error){
+   console.error(error);
+   setResult('<div class="result-head"><h3>We could not complete the check</h3><span class="status-badge notice">Temporary error</span></div><p>The drug-information service could not be reached or returned an unexpected response.</p><div class="result-note">Do not use a failed lookup as evidence that two medicines are safe to combine.</div>');
+ }finally{button.disabled=false}
+}
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&(document.activeElement?.id==="drug1"||document.activeElement?.id==="drug2"))checkInteraction()});
 </script>
-
 </body>
 </html>

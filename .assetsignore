@@ -1,0 +1,22 @@
+# Worker/runtime source
+worker.js
+functions/**
+tests/**
+.github/**
+
+# Project metadata
+.git/**
+.gitignore
+README.md
+wrangler.json
+wrangler.jsonc
+package.json
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+bun.lockb
+
+# Editor/system files
+.DS_Store
+.vscode/**
+.idea/**

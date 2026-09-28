@@ -235,6 +235,91 @@
             margin: 3px 0;
         }
 
+
+        .result-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #e2e8f0;
+            color: #334155;
+        }
+
+        .status-badge.notice {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-badge.found {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-badge.info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .evidence-block {
+            margin-top: 18px;
+            padding: 16px;
+            background: #ffffff;
+            border: 1px solid #dbe4ea;
+            border-radius: 9px;
+        }
+
+        .evidence-block h4 {
+            margin-bottom: 10px;
+            color: #123b50;
+        }
+
+        .evidence-block p {
+            margin-bottom: 10px;
+        }
+
+        .evidence-block p:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-note {
+            margin-top: 16px;
+            padding: 12px 14px;
+            background: #fffbeb;
+            border-left: 4px solid #d97706;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #5b4a1f;
+        }
+
+        .source-link {
+            display: inline-block;
+            margin-top: 12px;
+            color: #0f766e;
+            font-size: 13px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .source-link:hover {
+            text-decoration: underline;
+        }
+
+        .normalized-drugs {
+            margin-top: 12px;
+            font-size: 13px;
+            color: #475569;
+        }
+
         /* Mobile */
 
         @media (max-width: 700px) {
@@ -322,7 +407,7 @@
             <button
                 class="check-button"
                 type="button"
-                onclick="showComingSoon()"
+                onclick="checkInteraction()"
             >
                 Check Interaction
             </button>
@@ -439,7 +524,69 @@
 </footer>
 
 
+
 <script>
+    const FDA_BASE_URL = "https://api.fda.gov/drug/label.json";
+    const RXNAV_BASE_URL = "https://rxnav.nlm.nih.gov/REST";
+
+    const FOOD_ALIASES = {
+        grapefruit: ["grapefruit", "grapefruit juice"],
+        alcohol: ["alcohol", "ethanol", "alcoholic"],
+        caffeine: ["caffeine"],
+        dairy: ["milk", "dairy", "calcium"],
+        "vitamin k": ["vitamin k"],
+        tyramine: ["tyramine"],
+        potassium: ["potassium"],
+        sodium: ["sodium"]
+    };
+
+    async function fetchJson(url, timeoutMs = 12000) {
+        const controller = new AbortController();
+        const timer = setTimeout(function () { controller.abort(); }, timeoutMs);
+
+        try {
+            const response = await fetch(url, {
+                method: "GET",
+                headers: { "Accept": "application/json" },
+                signal: controller.signal
+            });
+
+            const text = await response.text();
+            let data = null;
+
+            try {
+                data = text ? JSON.parse(text) : null;
+            } catch (e) {
+                data = null;
+            }
+
+            return { ok: response.ok, status: response.status, data: data };
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value || "")
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+
+    function clean(value) {
+        return String(value || "").replace(/\s+/g, " ").trim();
+    }
+
+    function unique(values) {
+        return Array.from(new Set(
+            values.filter(Boolean).map(function (v) { return clean(v); })
+        ));
+    }
+
+    function escapeRegex(value) {
+        return String(value).replace(/[\\^$.*+?()[\]{}|]/g, "\\<script>
 
     async function showComingSoon() {
 
@@ -576,6 +723,309 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 }
 
+</script>");
+    }
+
+    function containsTerm(text, term) {
+        const haystack = clean(text).toLowerCase();
+        const needle = clean(term).toLowerCase();
+
+        if (!needle) return false;
+
+        if (needle.indexOf(" ") !== -1) {
+            return haystack.indexOf(needle) !== -1;
+        }
+
+        return new RegExp("(^|[^a-z0-9])" + escapeRegex(needle) + "([^a-z0-9]|$)", "i").test(haystack);
+    }
+
+    function snippets(text, terms) {
+        const parts = clean(text)
+            .split(/(?<=[.!?])\s+/)
+            .filter(Boolean);
+
+        return parts.filter(function (part) {
+            return terms.some(function (term) {
+                return containsTerm(part, term);
+            });
+        }).slice(0, 3);
+    }
+
+    function foodTerms(input) {
+        const value = clean(input).toLowerCase();
+
+        if (FOOD_ALIASES[value]) {
+            return FOOD_ALIASES[value];
+        }
+
+        return [value];
+    }
+
+    async function normalizeDrug(input) {
+        const value = clean(input);
+
+        const url =
+            RXNAV_BASE_URL +
+            "/approximateTerm.json?term=" +
+            encodeURIComponent(value) +
+            "&maxEntries=8&option=1";
+
+        const response = await fetchJson(url);
+
+        const candidates =
+            response.data &&
+            response.data.approximateGroup &&
+            response.data.approximateGroup.candidate
+                ? response.data.approximateGroup.candidate
+                : [];
+
+        const candidate =
+            candidates.find(function (item) {
+                return String(item.source || "").toUpperCase() === "RXNORM";
+            }) || candidates[0];
+
+        if (!candidate || !candidate.rxcui) {
+            return {
+                kind: "unknown",
+                input: value,
+                displayName: null,
+                terms: foodTerms(value)
+            };
+        }
+
+        const relatedUrl =
+            RXNAV_BASE_URL +
+            "/rxcui/" +
+            encodeURIComponent(candidate.rxcui) +
+            "/allrelated.json";
+
+        const related = await fetchJson(relatedUrl);
+        const terms = [];
+
+        const groups =
+            related.data &&
+            related.data.allRelatedGroup &&
+            related.data.allRelatedGroup.conceptGroup
+                ? related.data.allRelatedGroup.conceptGroup
+                : [];
+
+        groups.forEach(function (group) {
+            if (["IN", "PIN", "MIN"].indexOf(String(group.tty || "")) === -1) {
+                return;
+            }
+
+            (group.conceptProperties || []).forEach(function (concept) {
+                if (concept.name) terms.push(concept.name);
+            });
+        });
+
+        return {
+            kind: "drug",
+            input: value,
+            displayName: candidate.name || value,
+            rxcui: String(candidate.rxcui),
+            terms: unique(terms.concat([candidate.name || value, value]))
+        };
+    }
+
+    function fdaUrl(field, term) {
+        const query = field + ':"' + String(term).replaceAll('"', "") + '"';
+        return FDA_BASE_URL + "?search=" + encodeURIComponent(query) + "&limit=20";
+    }
+
+    async function getLabels(info) {
+        const terms = unique((info.terms || []).slice(0, 5).concat([info.input]));
+        const results = [];
+        const seen = new Set();
+
+        for (const term of terms) {
+            if (!term) continue;
+
+            for (const field of [
+                "openfda.generic_name",
+                "openfda.substance_name",
+                "openfda.brand_name"
+            ]) {
+                const url = fdaUrl(field, term);
+                const response = await fetchJson(url);
+
+                if (!response.ok || !response.data || !response.data.results) {
+                    continue;
+                }
+
+                for (const record of response.data.results) {
+                    const id =
+                        record.id ||
+                        (record.openfda && record.openfda.spl_set_id && record.openfda.spl_set_id[0]) ||
+                        field + "-" + term + "-" + results.length;
+
+                    if (seen.has(id)) continue;
+
+                    seen.add(id);
+                    results.push({
+                        record: record,
+                        url: url
+                    });
+
+                    if (results.length >= 20) {
+                        return results;
+                    }
+                }
+            }
+        }
+
+        return results;
+    }
+
+    function interactionEvidence(labels, targetTerms) {
+        const evidence = [];
+
+        labels.forEach(function (item) {
+            const record = item.record;
+            const sections = [];
+
+            (record.drug_interactions || []).forEach(function (x) { sections.push(String(x || "")); });
+            (record.drug_interactions_table || []).forEach(function (x) { sections.push(String(x || "")); });
+
+            sections.forEach(function (section) {
+                if (targetTerms.some(function (term) { return containsTerm(section, term); })) {
+                    evidence.push({
+                        snippets: snippets(section, targetTerms),
+                        url: item.url
+                    });
+                }
+            });
+        });
+
+        return evidence.slice(0, 5);
+    }
+
+    function evidenceHtml(title, evidence) {
+        if (!evidence.length) return "";
+
+        return evidence.map(function (item) {
+            const paragraphs = (item.snippets.length ? item.snippets : ["Relevant text was found in the FDA interaction section."])
+                .map(function (text) {
+                    return "<p>" + escapeHtml(text) + "</p>";
+                }).join("");
+
+            return (
+                '<div class="evidence-block">' +
+                    "<h4>" + escapeHtml(title) + "</h4>" +
+                    paragraphs +
+                    '<a class="source-link" href="' + escapeHtml(item.url) + '" target="_blank" rel="noopener noreferrer">View FDA source query ↗</a>' +
+                "</div>"
+            );
+        }).join("");
+    }
+
+    async function checkInteraction() {
+        const drug1 = clean(document.getElementById("drug1").value);
+        const drug2 = clean(document.getElementById("drug2").value);
+        const resultBox = document.getElementById("resultBox");
+
+        if (!drug1 || !drug2) {
+            resultBox.style.display = "block";
+            resultBox.innerHTML =
+                '<div class="result-head">' +
+                    "<h3>Please enter both items</h3>" +
+                    '<span class="status-badge notice">Missing input</span>' +
+                "</div>" +
+                "<p>Enter a medicine in both fields before checking.</p>";
+            return;
+        }
+
+        resultBox.style.display = "block";
+        resultBox.innerHTML =
+            '<div class="result-head">' +
+                "<h3>Checking drug information...</h3>" +
+                '<span class="status-badge info">Searching</span>' +
+            "</div>" +
+            "<p>Matching names with NLM RxNorm and reviewing FDA drug-label interaction sections.</p>";
+
+        try {
+            const first = await normalizeDrug(drug1);
+            const second = await normalizeDrug(drug2);
+
+            if (first.kind !== "drug") {
+                resultBox.innerHTML =
+                    '<div class="result-head">' +
+                        "<h3>First item was not recognized as a medicine</h3>" +
+                        '<span class="status-badge notice">Check input</span>' +
+                    "</div>" +
+                    "<p>Try a U.S. generic name or common U.S. brand name.</p>";
+                return;
+            }
+
+            const firstLabels = await getLabels(first);
+
+            if (!firstLabels.length) {
+                resultBox.innerHTML =
+                    '<div class="result-head">' +
+                        "<h3>No matching FDA label record was found</h3>" +
+                        '<span class="status-badge notice">No match</span>' +
+                    "</div>" +
+                    "<p>We could not retrieve an FDA drug-label record for <strong>" +
+                    escapeHtml(drug1) +
+                    "</strong>.</p>";
+                return;
+            }
+
+            const secondIsDrug = second.kind === "drug";
+            const secondTerms = secondIsDrug ? unique(second.terms.concat([drug2])) : foodTerms(drug2);
+
+            let evidence = interactionEvidence(firstLabels, secondTerms);
+
+            if (secondIsDrug) {
+                const secondLabels = await getLabels(second);
+                const reverseTerms = unique(first.terms.concat([drug1]));
+                evidence = evidence.concat(interactionEvidence(secondLabels, reverseTerms)).slice(0, 8);
+            }
+
+            const normalizedText =
+                "<div class="normalized-drugs">" +
+                "<strong>" + escapeHtml(drug1) + "</strong> → " +
+                escapeHtml(first.displayName || drug1) +
+                " &nbsp; | &nbsp; " +
+                "<strong>" + escapeHtml(drug2) + "</strong> → " +
+                escapeHtml(secondIsDrug ? (second.displayName || drug2) : drug2) +
+                "</div>";
+
+            if (evidence.length) {
+                resultBox.innerHTML =
+                    '<div class="result-head">' +
+                        "<h3>Interaction information found in FDA labeling</h3>" +
+                        '<span class="status-badge found">Label mention found</span>' +
+                    "</div>" +
+                    "<p>The retrieved FDA interaction sections directly mention the other medicine or food term.</p>" +
+                    normalizedText +
+                    evidenceHtml("FDA label evidence", evidence) +
+                    '<div class="result-note"><strong>Important:</strong> This reports information found in FDA labeling. It does not determine whether the combination is safe or appropriate for a particular person.</div>';
+            } else {
+                resultBox.innerHTML =
+                    '<div class="result-head">' +
+                        "<h3>No direct mention found in retrieved FDA interaction sections</h3>" +
+                        '<span class="status-badge info">No label mention</span>' +
+                    "</div>" +
+                    "<p>We did not find a direct mention of <strong>" +
+                    escapeHtml(drug2) +
+                    "</strong> in the retrieved interaction sections.</p>" +
+                    normalizedText +
+                    '<div class="result-note"><strong>Important:</strong> A missing mention is not a finding that no interaction exists. FDA labeling varies by product and may not contain every possible interaction.</div>';
+            }
+
+        } catch (error) {
+            console.error(error);
+
+            resultBox.innerHTML =
+                '<div class="result-head">' +
+                    "<h3>We could not complete the check</h3>" +
+                    '<span class="status-badge notice">Temporary error</span>' +
+                "</div>" +
+                "<p>The drug-information service could not be reached or returned an unexpected response.</p>" +
+                '<div class="result-note">Do not use a failed lookup as evidence that two medicines are safe to combine.</div>';
+        }
+    }
 </script>
 
 </body>
